@@ -14,6 +14,7 @@ const Home = () => {
   const { sdk, connected } = useSDK();
 
   const [account, setAccount] = useState(walletOwner || "");
+  const [disableSubmit, setDisableSubmit] = useState(false);
   const [listedItems, setListedItems] = useState([]);
   const [soldItems, setSoldItems] = useState([]);
   const [uploadedItems, setAllUploadedItems] = useState([]);
@@ -104,6 +105,7 @@ const Home = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setDisableSubmit(true);
     try {
       if (editNft.status) {
         const listingPrice = ethers.utils.parseEther(
@@ -119,6 +121,7 @@ const Home = () => {
         ).wait();
         console.log("finalResponse", finalResponse);
         if (finalResponse?.status) {
+          setDisableSubmit(false);
           setEditNft({
             status: false,
             id: "",
@@ -158,6 +161,7 @@ const Home = () => {
           )
         ).wait();
         if (finalResponse?.status) {
+          setDisableSubmit(false);
           imageRef.current.value = "";
           getAllNfts();
           getAllUploadedNfts();
@@ -355,7 +359,10 @@ const Home = () => {
               onChange={handleChange}
               placeholder="Please enter description"
             />
-            <button type="submit">Submit</button>
+            {disableSubmit && <p>Please wait it will take few seconds.</p>}
+            <button disabled={disableSubmit} type="submit">
+              {disableSubmit ? "Submitting..." : "Submit"}
+            </button>
           </form>
         )}
         <div
@@ -381,7 +388,7 @@ const Home = () => {
             }}
           >
             {listedItems?.map((item) => {
-              console.log("item : ",item);
+              console.log("item : ", item);
               const hexValue = item.totalPrice._hex;
               const bigNumberValue = ethers.BigNumber.from(hexValue);
               const etherValue = ethers.utils.formatEther(bigNumberValue);
