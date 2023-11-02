@@ -10,10 +10,10 @@ contract NFT is ERC721URIStorage {
     constructor() ERC721("DApp NFT", "DAPP") {} //It sets up the initial state of the contract. it calls the constructor of the parent contract ERC721 with the arguments "DApp NFT" (the name of the NFT collection) and "DAPP" (the symbol of the NFT collection).
 
     function mintNft(string memory _tokenURI) external returns (uint) {
-        console.log("_tokenURI : ",_tokenURI);
-        console.log("tokenCount : ",tokenCount);        //initially 0 after minting it becomes 1
+        // console.log("_tokenURI : ",_tokenURI);
+        // console.log("tokenCount : ",tokenCount);        //initially 0 after minting it becomes 1
         tokenCount++;
-        console.log("ritik",msg.sender);
+        // console.log("ritik",msg.sender);
         _safeMint(msg.sender, tokenCount);
         _setTokenURI(tokenCount, _tokenURI);
         return tokenCount;
