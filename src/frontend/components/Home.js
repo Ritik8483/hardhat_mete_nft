@@ -10,10 +10,7 @@ import { Buffer } from "buffer";
 const Home = () => {
   const imageRef = useRef();
   const { ethers } = require("ethers");
-  const walletOwner = JSON.parse(localStorage.getItem("account"));
-  const { sdk, connected } = useSDK();
-
-  const [account, setAccount] = useState(walletOwner || "");
+  const { account, sdk, connected } = useSDK();
   const [disableSubmit, setDisableSubmit] = useState(false);
   const [listedItems, setListedItems] = useState([]);
   const [soldItems, setSoldItems] = useState([]);
@@ -33,12 +30,6 @@ const Home = () => {
   });
 
   useEffect(() => {
-    window.ethereum.on("accountsChanged", (accounts) => {
-      localStorage.setItem("account", JSON.stringify(accounts?.[0]));
-      setAccount(accounts[0]);
-    });
-  }, []);
-  useEffect(() => {
     const getProviderSigner = async () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
@@ -52,10 +43,10 @@ const Home = () => {
       setMarketPlaceContract(marketplace);
       setNftContract(Nft);
     };
-    if (walletOwner) {
+    if (account) {
       getProviderSigner();
     }
-  }, []);
+  }, [account]);
 
   const auth =
     "Basic " +
@@ -96,8 +87,6 @@ const Home = () => {
   const connect = async () => {
     try {
       const accounts = await sdk?.connect();
-      localStorage.setItem("account", JSON.stringify(accounts?.[0]));
-      setAccount(accounts?.[0]);
     } catch (err) {
       console.warn(`failed to connect..`, err);
     }
@@ -111,11 +100,6 @@ const Home = () => {
         const listingPrice = ethers.utils.parseEther(
           inputValues.amount.toString()
         );
-        // console.log("listingPrice:", listingPrice);
-        // const bigNumber = editNft.id;
-        // console.log("bigNumber", bigNumber);
-        // const regularNumber = bigNumber.toNumber();
-        // console.log("regularNumber", regularNumber);
         const finalResponse = await (
           await marketPlaceContract.updateNftPrice(editNft.id, listingPrice)
         ).wait();
@@ -184,7 +168,7 @@ const Home = () => {
     let soldItems = [];
     for (let i = 1; i <= itemCount; i++) {
       const item = await marketPlaceContract.items(i);
-      if (item.seller.toLowerCase() === walletOwner.toLowerCase()) {
+      if (item.seller.toLowerCase() === account.toLowerCase()) {
         const uri = await nftContract.tokenURI(item.tokenId);
         const response = await fetch(uri);
         const metadata = await response.json();
@@ -238,11 +222,11 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (marketPlaceContract?.address) {
+    if (marketPlaceContract?.address && account) {
       getAllNfts();
       getAllUploadedNfts();
     }
-  }, [marketPlaceContract, walletOwner]);
+  }, [marketPlaceContract, account]);
 
   console.log(marketPlaceContract);
   const handlePurchaseNft = async (item) => {
@@ -292,10 +276,10 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (marketPlaceContract?.address) {
+    if (marketPlaceContract?.address && account) {
       getAllPurchasedItems();
     }
-  }, [marketPlaceContract, walletOwner]);
+  }, [marketPlaceContract, account]);
 
   const handleChangePrice = async (item) => {
     console.log(item);
@@ -404,22 +388,20 @@ const Home = () => {
                   <p>Name : {item.name}</p>
                   <p>
                     Owner :{" "}
-                    {item.seller.toLowerCase() === walletOwner.toLowerCase()
-                      ? "Me"
-                      : item.seller}
+                    {item.seller.toLowerCase() === account ? "Me" : item.seller}
                   </p>
                   <p>Amount : {item.price}</p>
                   <p>Description : {item.description}</p>
                   <p>Total Price : {etherValue}</p>
                   <button
                     onClick={() => handleChangePrice(item)}
-                    disabled={item.seller.toLowerCase() !== walletOwner}
+                    disabled={item.seller.toLowerCase() !== account}
                   >
                     Change Price
                   </button>
                   <button
                     onClick={() => handlePurchaseNft(item)}
-                    disabled={item.seller.toLowerCase() === walletOwner}
+                    disabled={item.seller.toLowerCase() === account}
                   >
                     Purchase
                   </button>
